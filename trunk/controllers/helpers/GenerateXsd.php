@@ -17,64 +17,93 @@ class Dnna_Action_Helper_GenerateXsd extends Zend_Controller_Action_Helper_Abstr
     public function direct(Zend_Controller_Action $controller, Zend_Form $form, $root = 'item') {
         $xmlstr = 
         '<?xml version="1.0"?>
-        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-            targetNamespace="'.htmlspecialchars($controller->view->serverUrl().$controller->view->url()).'/schema"
-            xmlns:tns="'.htmlspecialchars($controller->view->serverUrl().$controller->view->url()).'/schema"
-            elementFormDefault="qualified"></xs:schema>';
+        <xsd:schema
+            targetNamespace="'.htmlspecialchars($controller->view->serverUrl().$controller->view->url(array('id' => 'schema'))).'"
+            elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns="'.htmlspecialchars($controller->view->serverUrl().$controller->view->url(array('id' => 'schema'))).'"></xsd:schema>';
         $this->_xmlobj = simpledom_load_string($xmlstr);
         // Create the root type and the root element
-        $roottype = $this->_xmlobj->addChild('xs:complexType');
-        $roottype->addAttribute('name', $root.'_type');
-        $sequence = $roottype->addChild('xs:sequence');
-        $rootelement = $this->_xmlobj->addChild('xs:element');
+        $rootelement = $this->_xmlobj->addChild('xsd:element');
         $rootelement->addAttribute('name', $root);
-        $rootelement->addAttribute('type', 'tns:'.$root.'_type');
+        $complexType = $rootelement->addChild('xsd:complexType');
+        $sequence = $complexType->addChild('xsd:sequence');
         // Add the rest of the elements
         $this->addElements($sequence, $form);
         return $this->_xmlobj->asXML();
     }
 
     protected function addElements(SimpleDOM &$xmlobj, Zend_Form $form) {
-        // Merge the default subform
-        if($form->getSubForm('default') != null) {
-            $this->addElements($xmlobj, $form->getSubForm('default'));
-        }
         foreach($form->getElements() as $curElement) {
             // Ignore submit/buttons
             if($curElement instanceof Zend_Form_Element_Submit || $curElement instanceof Zend_Form_Element_Button) {
                 continue;
             }
-            $this->addSimpleType($this->_xmlobj, $curElement);
-            $this->addElement($xmlobj, $curElement);
+            $elementxmlobj = $this->addElement($xmlobj, $curElement);
+            $typexmlobj = $this->addSimpleType($elementxmlobj, $curElement);
         }
         foreach($form->getSubForms() as $curSubForm) {
-            $newxmlobj = $this->_xmlobj->addChild('xs:complexType');
-            $newxmlobj->addAttribute('name', $curSubForm->getName());
-            $sequence = $newxmlobj->addChild('xs:sequence');
-            $this->addElements($sequence, $curSubForm);
+            if($curSubForm->getName() === 'default') {
+                // Merge the default subform
+                $this->addElements($xmlobj, $curSubForm);
+            } else if($curSubForm->getElement('1') != null || $curSubForm->getSubForm('1') != null) {
+                // Looping elements or subforms
+                $this->addComplexType($xmlobj, $curSubForm);
+                // Create the wrapper element
+                $rootelement = $xmlobj->addChild('xsd:element');
+                $rootelement->addAttribute('name', $curSubForm->getName());
+                $complexType = $rootelement->addChild('xsd:complexType');
+                $sequence = $complexType->addChild('xsd:sequence');
+                // Create the actual looping elements
+                $elementxmlobj = $sequence->addChild('xsd:element');
+                $elementxmlobj->addAttribute('name', 'item');
+                $elementxmlobj->addAttribute('type', $curSubForm->getName().'_type');
+                $elementxmlobj->addAttribute('minOccurs', 1);
+                $elementxmlobj->addAttribute('maxOccurs', $this->calculateLoopingElementsNum($curSubForm));
+            } else {
+                $rootelement = $xmlobj->addChild('xsd:element');
+                $rootelement->addAttribute('name', $curSubForm->getName());
+                $complexType = $rootelement->addChild('xsd:complexType');
+                $sequence = $complexType->addChild('xsd:sequence');
+                $this->addElements($sequence, $curSubForm);
+            }
         }
+        return $xmlobj;
     }
 
     protected function addSimpleType(SimpleDOM &$xmlobj, Zend_Form_Element $element) {
-        $typexmlobj = $xmlobj->addChild('xs:simpleType');
-        $typexmlobj->addAttribute('name', $element->getName().'_type');
-        if(trim($element->getLabel()) != '') {
-            $typexmlobj->insertComment(str_replace(':', '', trim($element->getLabel())), 'before');
-        }
+        $typexmlobj = $xmlobj->addChild('xsd:simpleType');
         $this->addRestrictions($typexmlobj, $element);
-        
+        return $typexmlobj;
+    }
+    
+    protected function addComplexType(SimpleDOM &$xmlobj, Zend_Form $form) {
+        $complexTypeXmlObj = $this->_xmlobj->addChild('xsd:complexType');
+        $complexTypeXmlObj->addAttribute('name', $form->getName().'_type');
+        $sequence = $complexTypeXmlObj->addChild('xsd:sequence');
+        $this->addElements($sequence, $form->getSubForm('1'));
+        return $complexTypeXmlObj;
     }
 
     protected function addElement(SimpleDOM &$xmlobj, Zend_Form_Element $element) {
-        $elementxmlobj = $xmlobj->addChild('xs:element');
+        $elementxmlobj = $xmlobj->addChild('xsd:element');
         $elementxmlobj->addAttribute('name', $element->getName());
-        $elementxmlobj->addAttribute('type', 'tns:'.$element->getName().'_type');
+        // Add minOccurs based on whether its required or not
+        if(!$element->isRequired()) {
+            $elementxmlobj->addAttribute('minOccurs', '0');
+            $elementxmlobj->addAttribute('nillable', 'true');
+        }
         // Add annotation for ignored/readonly fields
         if($element->getIgnore() == true) {
-            $annotation = $elementxmlobj->addChild('xs:annotation');
-            $appinfo = $annotation->addChild('xs:appinfo');
+            $annotation = $elementxmlobj->addChild('xsd:annotation');
+            $appinfo = $annotation->addChild('xsd:appinfo');
             $readonly = $appinfo->addChild('readOnly', 'true', '');
         }
+        // Add comment
+        if(trim($element->getLabel()) != '') {
+            $elementxmlobj->insertComment(str_replace(':', '', trim($element->getLabel())), 'before');
+        }
+        return $elementxmlobj;
     }
 
     protected function addRestrictions(SimpleDOM &$typexmlobj, Zend_Form_Element $element) {
@@ -88,23 +117,23 @@ class Dnna_Action_Helper_GenerateXsd extends Zend_Controller_Action_Helper_Abstr
         }
         // 3. If the element type is file then make it a base64Binary
         if($element instanceof Zend_Form_Element_File) {
-            $restriction = $typexmlobj->addChild('xs:restriction');
-            $restriction->addAttribute('base', 'xs:base64Binary');
+            $restriction = $typexmlobj->addChild('xsd:restriction');
+            $restriction->addAttribute('base', 'xsd:base64Binary');
         }
         // 4. Finally create restrictions based on the validators
         if(isset($restriction)) {
             $this->addValidatorRestrictions($restriction, $element);
         } else {
-            $this->addValidatorRestrictions($typexmlobj->addChild('xs:restriction'), $element);
+            $this->addValidatorRestrictions($typexmlobj->addChild('xsd:restriction'), $element);
         }
     }
-    
+
     protected function addSelectRestrictions(SimpleDOM &$typexmlobj, Zend_Form_Element_Select $element) {
-        $restriction = $typexmlobj->addChild('xs:restriction');
-        $restriction->addAttribute('base', 'xs:string');
+        $restriction = $typexmlobj->addChild('xsd:restriction');
+        $restriction->addAttribute('base', 'xsd:string');
         foreach($element->getMultiOptions() as $curOption => $curValue) {
             //$comment = $restriction->addChild('!-- Σχόλιο --');
-            $enum = $restriction->addChild('xs:enumeration');
+            $enum = $restriction->addChild('xsd:enumeration');
             $enum->addAttribute('value', $curOption);
             if($curValue === '-') {
                 $curValue = ' - ';
@@ -113,36 +142,37 @@ class Dnna_Action_Helper_GenerateXsd extends Zend_Controller_Action_Helper_Abstr
         }
         return $restriction;
     }
-    
+
     protected function addCheckboxRestrictions(SimpleDOM &$typexmlobj, Zend_Form_Element_Checkbox $element) {
-        $restriction = $typexmlobj->addChild('xs:restriction');
-        $restriction->addAttribute('base', 'xs:integer');
+        $restriction = $typexmlobj->addChild('xsd:restriction');
+        $restriction->addAttribute('base', 'xsd:integer');
         for($i = 0; $i <= 1; $i++) {
-            $enum = $restriction->addChild('xs:enumeration');
+            $enum = $restriction->addChild('xsd:enumeration');
             $enum->addAttribute('value', $i);
         }
         return $restriction;
     }
-    
+
     protected function addValidatorRestrictions(SimpleDOM &$typexmlobj, Zend_Form_Element $element) {
-        $base = 'xs:string';
+        $base = 'xsd:string';
         foreach($element->getValidators() as $curValidator) {
             //var_dump(get_class($curValidator));
             // Zend_Validate_StringLength
             if($curValidator instanceof Zend_Validate_StringLength) {
-                $min = $typexmlobj->addChild('xs:minInclusive');
+                $min = $typexmlobj->addChild('xsd:minLength');
                 $min->addAttribute('value', $curValidator->getMin());
-                $max = $typexmlobj->addChild('xs:maxInclusive');
+                $max = $typexmlobj->addChild('xsd:maxLength');
                 $max->addAttribute('value', $curValidator->getMax());
             }
             // Zend_Validate_Float
             if($curValidator instanceof Zend_Validate_Float) {
-                $pattern = $typexmlobj->addChild('xs:pattern');
-                $pattern->addAttribute('value', '^([\$]?)([0-9,\s]*\.?[0-9]{0,2})$');
+                $base = 'xsd:float';
+                //$pattern = $typexmlobj->addChild('xsd:pattern');
+                //$pattern->addAttribute('value', '([\$]?)([0-9,\s]*\.?[0-9]{0,2})');
             }
-            // Zend_Validate_Date
+            // Zend_Validate_Date - Chose dateTime isntead of date for easy ISO8601 formatting with PHP
             if($curValidator instanceof Zend_Validate_Date) {
-                $base = 'xs:date';
+                $base = 'xsd:dateTime';
             }
         }
         
@@ -151,6 +181,14 @@ class Dnna_Action_Helper_GenerateXsd extends Zend_Controller_Action_Helper_Abstr
             $typexmlobj->addAttribute('base', $base);
         }
         return $typexmlobj;
+    }
+
+    protected function calculateLoopingElementsNum(Zend_Form $form) {
+        $i = 1;
+        while($form->getElement($i) != null || $form->getSubForm($i) != null) {
+            $i++;
+        }
+        return ($i - 1);
     }
 }
 
