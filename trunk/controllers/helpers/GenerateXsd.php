@@ -139,6 +139,8 @@ class Dnna_Action_Helper_GenerateXsd extends Zend_Controller_Action_Helper_Abstr
             $enum->addAttribute('value', $curOption);
             if($curValue === '-') {
                 $curValue = ' - ';
+            } else {
+                $curValue = trim($curValue);
             }
             $enum->insertComment($curValue, 'before');
         }
