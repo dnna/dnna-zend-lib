@@ -68,6 +68,10 @@ class Dnna_Action_Helper_GenerateXsd extends Zend_Controller_Action_Helper_Abstr
                 $complexType = $rootelement->addChild('xsd:complexType');
                 $sequence = $complexType->addChild('xsd:sequence');
                 $this->addElements($sequence, $curSubForm);
+                // Add comment
+                if(trim($curSubForm->getLegend()) != '') {
+                    $rootelement->insertComment(str_replace(':', '', trim($curSubForm->getLegend())), 'before');
+                }
             }
         }
         return $xmlobj;
