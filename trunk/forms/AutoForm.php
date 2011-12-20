@@ -43,6 +43,11 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
                     'label' => $curField->get_label(),
                     'required' => $curField->get_required(),
                 ));
+            } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_PASSWORD) {
+                $this->addElement('password', $curField->get_name(), array(
+                    'label' => $curField->get_label(),
+                    'required' => $curField->get_required(),
+                ));
             } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_PARENTSELECT) {
                 $targetClassname = $curField->get_metadata()->associationMappings['_'.$curField->get_name()]['targetEntity'];
                 $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view);
