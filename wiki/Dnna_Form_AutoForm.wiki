@@ -1,4 +1,4 @@
-#summary A Zend_Form extension that ties directly to a model class.
+#summary A Zend_Form extension that ties directly to a model class and maps its properties.
 
 = AutoForm =
 
