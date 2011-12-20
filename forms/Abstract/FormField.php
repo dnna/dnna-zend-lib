@@ -18,12 +18,14 @@ class Dnna_Form_Abstract_FormField {
      * @var ClassMetadata
      */
     protected $_metadata;
-    
+
     const TYPE_TEXT = 0;
-    
+
     const TYPE_PARENTSELECT = 1;
-    
+
     const TYPE_HIDDEN = 2;
+
+    const TYPE_PASSWORD = 3;
 
     public function get_belongingClass() {
         return $this->_belongingClass;
@@ -80,6 +82,8 @@ class Dnna_Form_Abstract_FormField {
                 $this->_type = self::TYPE_PARENTSELECT;
             } else if(strtolower($_type) === 'hidden') {
                 $this->_type = self::TYPE_HIDDEN;
+            } else if(strtolower($_type) === 'password') {
+                $this->_type = self::TYPE_PASSWORD;
             } else {
                 throw new Exception('Unknown field type in Dnna_Form_Abstract_FormField.');
             }
