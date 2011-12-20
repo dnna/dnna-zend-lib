@@ -122,15 +122,6 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
         return $ids;
     }
 
-    protected function addSubmitFields(&$dg = Array()) {
-        $id = Zend_Controller_Front::getInstance()->getRequest()->getParam('id');
-        // Add the submit button
-        $this->addElement('submit', 'submit', array(
-            'ignore' => true,
-            'label' => 'Υποβολή',
-        ));
-    }
-
     public function init() {
         // Set the method for the display form to POST
         $this->setMethod('post');
