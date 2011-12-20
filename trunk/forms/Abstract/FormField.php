@@ -1,7 +1,7 @@
 <?php
 use Doctrine\ORM\Mapping\ClassMetadata;
 
-class Application_Form_Abstract_FormField {
+class Dnna_Form_Abstract_FormField {
 
     protected $_belongingClass;
 
@@ -81,7 +81,7 @@ class Application_Form_Abstract_FormField {
             } else if(strtolower($_type) === 'hidden') {
                 $this->_type = self::TYPE_HIDDEN;
             } else {
-                throw new Exception('Άγνωστος τύπος πεδίου στο Application_Form_Abstract_FormField.');
+                throw new Exception('Unknown field type in Dnna_Form_Abstract_FormField.');
             }
         } else {
             $this->_type = $_type;
