@@ -8,7 +8,6 @@ class Dnna_Form_FormBase extends Zend_Form {
     protected $_textareaRows;
     protected $_textareaCols;
     protected $_textareaMaxLength;
-    protected $_submitlabel = 'Υποβολή';
     
     public function __construct($view = null) {
         $bootstrap = Zend_Controller_Front::getInstance()->getParam('bootstrap');
@@ -115,7 +114,7 @@ class Dnna_Form_FormBase extends Zend_Form {
         // Add the submit button
         $this->addElement('submit', 'submit', array(
             'ignore' => true,
-            'label' => $this->_submitlabel,
+            'label' => 'Υποβολή',
             'class' => 'submitbutton',
         ));
     }
@@ -251,14 +250,6 @@ class Dnna_Form_FormBase extends Zend_Form {
                 $this->mergeDefault($curValue);
             }
         }
-    }
-
-    public function get_submitlabel() {
-        return $this->_submitlabel;
-    }
-
-    public function set_submitlabel($_submitlabel) {
-        $this->_submitlabel = $_submitlabel;
     }
 }
 ?>
