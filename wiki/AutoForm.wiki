@@ -1,0 +1,7 @@
+#summary A Zend_Form extension that ties directly to a model class
+
+= AutoForm =
+
+The Dnna_Form_AutoForm class is a Zend_Form extension that ties directly to a model class and automatically creates form elements based on the model's properties. The goal is to allow the developer to leverage the benefits of Zend_Form while remaining DRY in simple form applications.
+
+The elements and their behavior can be controlled through annotations, and the form can be directly populated using an object instance.
