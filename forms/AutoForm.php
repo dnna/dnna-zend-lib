@@ -38,12 +38,12 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
         }
 
         foreach($fields as $curField) {
-            if($curField->get_type() == Application_Form_Abstract_FormField::TYPE_TEXT) {
+            if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_TEXT) {
                 $this->addElement('text', $curField->get_name(), array(
                     'label' => $curField->get_label(),
                     'required' => $curField->get_required(),
                 ));
-            } else if($curField->get_type() == Application_Form_Abstract_FormField::TYPE_PARENTSELECT) {
+            } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_PARENTSELECT) {
                 $targetClassname = $curField->get_metadata()->associationMappings['_'.$curField->get_name()]['targetEntity'];
                 $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view);
                 $targetKey = $targetForm->getIdFields();
@@ -54,7 +54,7 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
                     'multiOptions' => Application_Model_Repositories_Lists::getListAsArray($targetClassname),
                 ));
                 $this->addSubForm($subform, $curField->get_name(), false);
-            } else if($curField->get_type() == Application_Form_Abstract_FormField::TYPE_HIDDEN) {
+            } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_HIDDEN) {
                 if($this->getElement($curField->get_name()) == null) {
                     $this->addElement('hidden', $curField->get_name(), array(
                         'required' => $curField->get_required(),
@@ -73,7 +73,7 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
     /**
      * Δημιουργεί δυναμικά τα πεδία της φόρμας μέσα από την αντίστοιχη κλάση,
      * χρησιμοποιώντας annotations για το label.
-     * @return Application_Form_Abstract_FormField
+     * @return Dnna_Form_Abstract_FormField
      */
     public function getFormFields() {
         $fields = Array();
@@ -81,7 +81,7 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
         foreach($reflection->getProperties() as $curProperty) {
             $docblock = $curProperty->getDocComment();
             if($docblock instanceof Zend_Reflection_Docblock) {
-                $curField = new Application_Form_Abstract_FormField();
+                $curField = new Dnna_Form_Abstract_FormField();
                 if($docblock->hasTag('FormFieldLabel') || $docblock->hasTag('FormFieldType')) {
                     $curField->set_belongingClass($this->_class);
                     $curField->set_name(substr($curProperty->getName(), 1));
