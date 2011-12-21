@@ -5,9 +5,11 @@
  */
 class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
     protected $_class = 'Dnna_Model_Object';
+    protected $_idfieldsonly = false;
 
-    public function __construct($class, $view = null) {
+    public function __construct($class, $view = null, $idfieldsonly = false) {
         $this->_class = $class;
+        $this->_idfieldsonly = $idfieldsonly;
         parent::__construct($view);
     }
 
@@ -49,16 +51,11 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
                     'required' => $curField->get_required(),
                 ));
             } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_PARENTSELECT) {
-                $targetClassname = $curField->get_metadata()->associationMappings['_'.$curField->get_name()]['targetEntity'];
-                $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view);
-                $targetKey = $targetForm->getIdFields();
-                $subform = new Dnna_Form_SubFormBase($this->_view);
-                $subform->addElement('select', $targetKey[0], array(
-                    'label' => $curField->get_label(),
-                    'required' => $curField->get_required(),
-                    'multiOptions' => Application_Model_Repositories_Lists::getListAsArray($targetClassname),
-                ));
-                $this->addSubForm($subform, $curField->get_name(), false);
+                $this->createParentSelectField($curField);
+            } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_RECURSIVE) {
+                $this->createRecursiveField($curField, false);
+            } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_RECURSIVEID) {
+                $this->createRecursiveField($curField, true);
             } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_HIDDEN) {
                 if($this->getElement($curField->get_name()) == null) {
                     $this->addElement('hidden', $curField->get_name(), array(
@@ -75,6 +72,35 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
         }
     }
 
+    protected function createParentSelectField($curField) {
+        $targetClassname = $curField->get_metadata()->associationMappings['_'.$curField->get_name()]['targetEntity'];
+        $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view);
+        $targetKey = $targetForm->getIdFields();
+        $subform = new Dnna_Form_SubFormBase($this->_view);
+        $subform->addElement('select', $targetKey[0], array(
+            'label' => $curField->get_label(),
+            'required' => $curField->get_required(),
+            'multiOptions' => Application_Model_Repositories_Lists::getListAsArray($targetClassname),
+        ));
+        $this->addSubForm($subform, $curField->get_name(), false);
+    }
+
+    protected function createRecursiveField($curField, $idonly = false) {
+        $targetClassname = $curField->get_metadata()->associationMappings['_'.$curField->get_name()]['targetEntity'];
+        $metadataclass = 'Doctrine\ORM\Mapping\ClassMetadataInfo';
+        if($curField->get_metadata()->associationMappings['_'.$curField->get_name()]['type'] == $metadataclass::ONE_TO_MANY || 
+                $curField->get_metadata()->associationMappings['_'.$curField->get_name()]['type'] == $metadataclass::MANY_TO_MANY) {
+            $targetForm = new Dnna_Form_SubFormBase($this->_view);
+            for($i = 1; $i < $curField->get_maxoccurs(); $i++) {
+                $targetForm->addSubForm(new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly), $i);
+            }
+        } else {
+            $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly);
+        }
+        $targetForm->setLegend($curField->get_label());
+        $this->addSubForm($targetForm, $curField->get_name(), false);
+    }
+
     /**
      * Δημιουργεί δυναμικά τα πεδία της φόρμας μέσα από την αντίστοιχη κλάση,
      * χρησιμοποιώντας annotations για το label.
@@ -83,27 +109,36 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
     public function getFormFields() {
         $fields = Array();
         $reflection = new Zend_Reflection_Class($this->_class);
+        $idfields = $this->getIdFields();
         foreach($reflection->getProperties() as $curProperty) {
             $docblock = $curProperty->getDocComment();
             if($docblock instanceof Zend_Reflection_Docblock) {
-                $curField = new Dnna_Form_Abstract_FormField();
-                if($docblock->hasTag('FormFieldLabel') || $docblock->hasTag('FormFieldType')) {
-                    $curField->set_belongingClass($this->_class);
-                    $curField->set_name(substr($curProperty->getName(), 1));
-                    $curField->set_metadata(Zend_Registry::get('entityManager')->getMetadataFactory()->getMetadataFor($this->_class));
-                    if($docblock->hasTag('FormFieldLabel')) {
-                        $curField->set_label($docblock->getTag('FormFieldLabel')->getDescription());
+                if($this->_idfieldsonly == false || in_array($curProperty->getName(), $idfields)) {
+                    $curField = new Dnna_Form_Abstract_FormField();
+                    if($docblock->hasTag('FormFieldLabel') || $docblock->hasTag('FormFieldType')) {
+                        $curField->set_belongingClass($this->_class);
+                        $curField->set_name(substr($curProperty->getName(), 1));
+                        $curField->set_metadata(Zend_Registry::get('entityManager')->getMetadataFactory()->getMetadataFor($this->_class));
+                        if($docblock->hasTag('FormFieldLabel')) {
+                            $curField->set_label($docblock->getTag('FormFieldLabel')->getDescription());
+                        }
+                        if($docblock->hasTag('FormFieldRequired')) {
+                            $curField->set_required(true);
+                        }
+                        if($docblock->hasTag('FormFieldType')) {
+                            $curField->set_type($docblock->getTag('FormFieldType')->getDescription());
+                            if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_RECURSIVE ||
+                                    $curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_RECURSIVEID) {
+                                if($docblock->hasTag('FormFieldMaxOccurs')) {
+                                    $curField->set_maxoccurs($docblock->getTag('FormFieldMaxOccurs')->getDescription());
+                                }
+                            }
+                        }
+                        if($docblock->hasTag('FormFieldDisabled')) {
+                            $curField->set_disabled($docblock->getTag('FormFieldDisabled')->getDescription());
+                        }
+                    array_push($fields, $curField);
                     }
-                    if($docblock->hasTag('FormFieldRequired')) {
-                        $curField->set_required(true);
-                    }
-                    if($docblock->hasTag('FormFieldType')) {
-                        $curField->set_type($docblock->getTag('FormFieldType')->getDescription());
-                    }
-                    if($docblock->hasTag('FormFieldDisabled')) {
-                        $curField->set_disabled($docblock->getTag('FormFieldDisabled')->getDescription());
-                    }
-                array_push($fields, $curField);
                 }
             }
         }
