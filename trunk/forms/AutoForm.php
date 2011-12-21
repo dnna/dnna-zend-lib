@@ -5,11 +5,20 @@
  */
 class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
     protected $_class = 'Dnna_Model_Object';
-    protected $_idfieldsonly = false;
+    protected $_idfieldsonly;
+    protected $_classesadded; // Prevent recursion loops
 
-    public function __construct($class, $view = null, $idfieldsonly = false) {
+    public function __construct($class, $view = null, $idfieldsonly = false, $classesadded = array()) {
         $this->_class = $class;
+        if(!isset($idfieldsonly)) {
+            $idfieldsonly = false;
+        }
         $this->_idfieldsonly = $idfieldsonly;
+
+        if(count($classesadded) <= 0) {
+            array_push($classesadded, $this->_class);
+        }
+        $this->_classesadded = $classesadded;
         parent::__construct($view);
     }
 
@@ -73,8 +82,8 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
     }
 
     protected function createParentSelectField($curField) {
-        $targetClassname = $curField->get_metadata()->associationMappings['_'.$curField->get_name()]['targetEntity'];
-        $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view);
+        $targetClassname = $curField->getTargetClassName();
+        $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view, null, $this->_classesadded);
         $targetKey = $targetForm->getIdFields();
         $subform = new Dnna_Form_SubFormBase($this->_view);
         $subform->addElement('select', $targetKey[0], array(
@@ -86,16 +95,19 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
     }
 
     protected function createRecursiveField($curField, $idonly = false) {
-        $targetClassname = $curField->get_metadata()->associationMappings['_'.$curField->get_name()]['targetEntity'];
+        $targetClassname = $curField->getTargetClassName();
         $metadataclass = 'Doctrine\ORM\Mapping\ClassMetadataInfo';
-        if($curField->get_metadata()->associationMappings['_'.$curField->get_name()]['type'] == $metadataclass::ONE_TO_MANY || 
-                $curField->get_metadata()->associationMappings['_'.$curField->get_name()]['type'] == $metadataclass::MANY_TO_MANY) {
+        if(in_array($targetClassname, $this->_classesadded)) {
+            return;
+        }
+        array_push($this->_classesadded, $targetClassname);
+        if($curField->getAssociationType() == $metadataclass::ONE_TO_MANY || $curField->getAssociationType() == $metadataclass::MANY_TO_MANY) {
             $targetForm = new Dnna_Form_SubFormBase($this->_view);
             for($i = 1; $i < $curField->get_maxoccurs(); $i++) {
-                $targetForm->addSubForm(new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly), $i);
+                $targetForm->addSubForm(new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly, $this->_classesadded), $i);
             }
         } else {
-            $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly);
+            $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly, $this->_classesadded);
         }
         $targetForm->setLegend($curField->get_label());
         $this->addSubForm($targetForm, $curField->get_name(), false);
@@ -137,6 +149,9 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
                         if($docblock->hasTag('FormFieldDisabled')) {
                             $curField->set_disabled($docblock->getTag('FormFieldDisabled')->getDescription());
                         }
+                        if($docblock->hasTag('var')) {
+                            $curField->set_var($docblock->getTag('var')->getDescription());
+                        }
                     array_push($fields, $curField);
                     }
                 }
@@ -155,6 +170,18 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
             }
         }
         return $ids;
+    }
+
+    public function isEmpty() {
+        $empty = true;
+        $ids = $this->getIdFields();
+        foreach($ids as $curId) {
+            if($this->getElement($curId) != null && $this->getElement($curId)->getValue() != '') {
+                $empty = false;
+                break;
+            }
+        }
+        return $empty;
     }
 
     public function init() {

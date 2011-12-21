@@ -239,6 +239,20 @@ class Dnna_Form_FormBase extends Zend_Form {
         }
         return $values;
     }
+
+    // Checks if the form should be considered empty or not (for ONE-TO-MANY and MANY-TO-MANY
+    // loops). In Dnna_Form_FormBase this always returns false, it's there so you can override
+    // it in your own forms.
+    public function isEmpty() {
+        $empty = true;
+        foreach($this->getSubForms() as $curSubForm) {
+            if($curSubForm instanceof Dnna_Form_FormBase && !$curSubForm->isEmpty()) {
+                $empty = false;
+                break;
+            }
+        }
+        return $empty;
+    }
     
     private function mergeDefault(array &$values) {
         if(isset($values['default'])) {

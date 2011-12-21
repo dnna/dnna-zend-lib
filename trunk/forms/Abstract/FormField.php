@@ -15,12 +15,14 @@ class Dnna_Form_Abstract_FormField {
 
     protected $_type = self::TYPE_TEXT;
 
-    protected $_maxoccurs = 100; // For ONE-TO-MANY and MANY-TO-MANY recursive associations
+    protected $_maxoccurs = 20; // For ONE-TO-MANY and MANY-TO-MANY recursive associations
 
     /**
      * @var ClassMetadata
      */
     protected $_metadata;
+
+    protected $_var; // @var annotation
 
     const TYPE_TEXT = 0;
 
@@ -117,6 +119,33 @@ class Dnna_Form_Abstract_FormField {
 
     public function set_metadata($_metadata) {
         $this->_metadata = $_metadata;
+    }
+
+    public function get_var() {
+        return $this->_var;
+    }
+
+    public function set_var($_var) {
+        $this->_var = $_var;
+    }
+
+    public function getTargetClassName() {
+        $metadataresult = @$this->get_metadata()->associationMappings['_'.$this->get_name()]['targetEntity'];
+        if(isset($metadataresult)) {
+            return $metadataresult;
+        } else {
+            return $this->get_var();
+        }
+    }
+
+    public function getAssociationType() {
+        $metadataclass = 'Doctrine\ORM\Mapping\ClassMetadataInfo';
+        $metadataassociation = @$this->get_metadata()->associationMappings['_'.$this->get_name()]['type'];
+        if(isset($metadataassociation)) {
+            return $metadataassociation;
+        } else {
+            return $metadataclass::ONE_TO_MANY;
+        }
     }
 }
 ?>
