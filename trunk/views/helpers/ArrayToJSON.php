@@ -53,9 +53,9 @@ class Dnna_View_Helper_ArrayToJSON extends Zend_View_Helper_Abstract
     public function arrayToJSON($data, $root = 'object') {
         $result = array();
         if($data instanceof Zend_Form) {
-            $this->addElements($result[$root], $data);
+            $this->addElements($result, $data);
         } else {
-            $result[$root] = $data;
+            $result = $data;
         }
         return json_encode($result);
     }
