@@ -31,9 +31,15 @@ class Dnna_View_Helper_ArrayToXML extends Zend_View_Helper_Abstract
     }
     
     protected function addSingleElement(SimpleXMLElement &$node, Zend_Form_Element $element) {
-            $subnode = $node->addChild($element->getName(), $element->getValue());
             if($element->getValue() === null || $element->getValue() === '') {
-                $subnode->addAttribute('xsi:nil', 'true', 'http://www.w3.org/2001/XMLSchema-instance');
+                if($element->isRequired()) {
+                    $subnode = $node->addChild($element->getName(), $element->getValue());
+                    $subnode->addAttribute('xsi:nil', 'true', 'http://www.w3.org/2001/XMLSchema-instance');
+                } else {
+                    return; // Don't create a node for empty optional fields
+                }
+            } else {
+                $subnode = $node->addChild($element->getName(), $element->getValue());
             }
             return $subnode;
     }
@@ -58,7 +64,9 @@ class Dnna_View_Helper_ArrayToXML extends Zend_View_Helper_Abstract
                 }
                 $i = 1;
                 while($curSubForm->getSubForm($i) != null) {
-                    $this->addElements($subnode->addChild('item'), $curSubForm->getSubForm($i));
+                    if($curSubForm->getSubForm($i) instanceof Dnna_Form_FormBase && !$curSubForm->getSubForm($i)->isEmpty()) {
+                        $this->addElements($subnode->addChild('item'), $curSubForm->getSubForm($i));
+                    }
                     $i++;
                 }
             } else {
