@@ -198,7 +198,7 @@ class Dnna_Form_FormBase extends Zend_Form {
     }
 
     public function isValid($data) {
-        if(isset($data['isvisible']) != null && $data['isvisible'] == 0) {
+        if(isset($data['isvisible']) && $data['isvisible'] == 0) {
             $this->setRequired(false);
         }
         return parent::isValid($data);
