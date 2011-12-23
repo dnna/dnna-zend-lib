@@ -74,7 +74,7 @@ class Dnna_Plugin_DoctrineStorage implements Zend_Auth_Storage_Interface
     public function write($object)
     {
         if(!is_object($object) || !($object instanceof $this->_entityclass)) {
-            throw new Exception('Content is not an object or its of the wrong class');
+            throw new Exception('Input is not an object or its an object of the wrong class');
         }
         $metadata = $this->_em->getClassMetadata($this->_entityclass);
         $ids = array();
