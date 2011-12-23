@@ -36,6 +36,8 @@ class Dnna_Form_Abstract_FormField {
 
     const TYPE_RECURSIVEID = 5;
 
+    const TYPE_CHECKBOX = 6;
+
     public function get_belongingClass() {
         return $this->_belongingClass;
     }
@@ -93,6 +95,8 @@ class Dnna_Form_Abstract_FormField {
                 $this->_type = self::TYPE_HIDDEN;
             } else if(strtolower($_type) === 'password') {
                 $this->_type = self::TYPE_PASSWORD;
+            } else if(strtolower($_type) === 'checkbox') {
+                $this->_type = self::TYPE_CHECKBOX;
             } else if(strtolower($_type) === 'recursive') {
                 $this->_type = self::TYPE_RECURSIVE;
             } else if(strtolower($_type) === 'recursiveid') {

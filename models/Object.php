@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 abstract class Dnna_Model_Object {
     protected $__classname;
+    protected $__metadata;
 
     public function __construct(array $options = null) {
         $this->__classname = get_class($this); // Χρησιμοποιείται για την επιλογή του σωστού τύπου στην setOptionsFromStrings
@@ -61,6 +62,10 @@ abstract class Dnna_Model_Object {
             $method = 'set_'.$key;
             $methodget = 'get_'.$key;
             if(is_scalar($value)) {
+                // Αν το πεδίο είναι association τότε το αλλάζουμε από scalar σε object
+                if(($classname = $this->guessPropertyClass($key)) != null) {
+                    $value = Zend_Registry::get('entityManager')->getRepository($classname)->find($value);
+                }
                 if(in_array($method, $methods)) {
                     $this->$method($value);
                 }
@@ -132,7 +137,7 @@ abstract class Dnna_Model_Object {
         }
         return $this;
     }
-    
+
     /**
      * Προβλέπει τον τύπο ενός property με βάση το annotation @var και τον
      * επιστρέφει.
@@ -141,7 +146,19 @@ abstract class Dnna_Model_Object {
      * @return string
      */
     private function guessPropertyClass($property) {
-        $reflection = new Zend_Reflection_Class(get_class($this));
+        if(!isset($this->__metadata)) {
+            $this->__metadata = Zend_Registry::get('entityManager')->getClassMetadata(get_class($this));
+        }
+        if($property[0] !== '_') {
+            $property = '_'.$property;
+        }
+        $associations = $this->__metadata->associationMappings;
+        if(isset($associations[$property])) {
+            return $associations[$property]['targetEntity'];
+        } else {
+            return null;
+        }
+        /*$reflection = new Zend_Reflection_Class(get_class($this));
         if($property[0] !== '_') {
             $property = '_'.$property;
         }
@@ -152,9 +169,9 @@ abstract class Dnna_Model_Object {
                 return trim($docblock->getTag('var')->getDescription());
             }
         }
-        return null;
+        return null;*/
     }
-    
+
     /**
      * Βρίσκει τα id fields μιας κλάσης σύμφωνα με τα annotations του Doctrine.
      * @param string $classname Το όνομα της κλάσης.

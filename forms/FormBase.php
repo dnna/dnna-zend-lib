@@ -33,7 +33,13 @@ class Dnna_Form_FormBase extends Zend_Form {
         
         $this->fixDecorators();
     }
-    
+
+    protected function initSubform() {
+        $this->_isArray = true;
+        $tempsubform = new Zend_Form_SubForm();
+        $this->setDecorators($tempsubform->getDecorators());
+    }
+
     public function fixDecorators() {
         // Αφαίρεση των decorators από τα hidden πεδία αλλιώς προσθήκη του div decorator
         foreach ($this->getElements() as $element) {
@@ -123,7 +129,7 @@ class Dnna_Form_FormBase extends Zend_Form {
         $defsubform = $this->getSubForm('default');
         if($object instanceof Dnna_Model_Object) {
             foreach($object->getOptions() as $curProperty => $curValue) {
-                if(is_scalar($curValue) || $curValue instanceof EDateTime || $curValue == null) {
+                if(is_scalar($curValue) || method_exists($curValue, 'getId') || $curValue instanceof EDateTime || $curValue == null) {
                     // Api conversions για να βγαίνει valid xsd
                     if(Zend_Registry::isRegistered('performApiConversions')) {
                         if($curValue instanceof EDateTime) {
@@ -139,6 +145,9 @@ class Dnna_Form_FormBase extends Zend_Form {
                     }
                     if($defsubform != null) {
                         $defsubform->populate($object);
+                    }
+                    if(method_exists($curValue, 'getId')) {
+                        $curValue = $curValue->getId();
                     }
                     if($this->getElement($curProperty) != null && $curValue !== "--NONAME--") {
                         $this->getElement($curProperty)->setValue($curValue);
