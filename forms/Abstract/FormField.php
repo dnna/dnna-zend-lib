@@ -38,6 +38,8 @@ class Dnna_Form_Abstract_FormField {
 
     const TYPE_CHECKBOX = 6;
 
+    const TYPE_TEXTAREA = 7;
+
     public function get_belongingClass() {
         return $this->_belongingClass;
     }
@@ -97,6 +99,8 @@ class Dnna_Form_Abstract_FormField {
                 $this->_type = self::TYPE_PASSWORD;
             } else if(strtolower($_type) === 'checkbox') {
                 $this->_type = self::TYPE_CHECKBOX;
+            } else if(strtolower($_type) === 'textarea') {
+                $this->_type = self::TYPE_TEXTAREA;
             } else if(strtolower($_type) === 'recursive') {
                 $this->_type = self::TYPE_RECURSIVE;
             } else if(strtolower($_type) === 'recursiveid') {
