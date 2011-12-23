@@ -69,6 +69,16 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
                     'label' => $curField->get_label(),
                     'required' => $curField->get_required(),
                 ));
+            } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_TEXTAREA) {
+                $this->addElement('textarea', $curField->get_name(), array(
+                    'label' => $curField->get_label(),
+                    'validators' => array(
+                        array('validator' => 'StringLength', 'options' => array(0, $this->_textareaMaxLength))
+                    ),
+                    'rows' => $this->_textareaRows,
+                    'cols' => $this->_textareaCols,
+                    'required' => $curField->get_required(),
+                ));
             } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_PARENTSELECT) {
                 $this->createParentSelectField($curField);
             } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_RECURSIVE) {
