@@ -7,9 +7,9 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
     protected $_class = 'Dnna_Model_Object';
     protected $_idfieldsonly;
     protected $_classesadded; // Prevent recursion loops
-    protected $_addsubmit;
+    protected $_issubform;
 
-    public function __construct($class, $view = null, $idfieldsonly = false, $classesadded = array(), $addsubmit = true) {
+    public function __construct($class, $view = null, $idfieldsonly = false, $classesadded = array(), $issubform = false) {
         $this->_class = $class;
         if(!isset($idfieldsonly)) {
             $idfieldsonly = false;
@@ -20,8 +20,11 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
             array_push($classesadded, $this->_class);
         }
         $this->_classesadded = $classesadded;
-        $this->_addsubmit = $addsubmit;
+        $this->_issubform = $issubform;
         parent::__construct($view);
+        if($this->_issubform) {
+            $this->initSubform();
+        }
     }
 
     public function get_class() {
@@ -58,6 +61,11 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
                 ));
             } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_PASSWORD) {
                 $this->addElement('password', $curField->get_name(), array(
+                    'label' => $curField->get_label(),
+                    'required' => $curField->get_required(),
+                ));
+            } else if($curField->get_type() == Dnna_Form_Abstract_FormField::TYPE_CHECKBOX) {
+                $this->addElement('checkbox', $curField->get_name(), array(
                     'label' => $curField->get_label(),
                     'required' => $curField->get_required(),
                 ));
@@ -106,13 +114,13 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
         if($curField->getAssociationType() == $metadataclass::ONE_TO_MANY || $curField->getAssociationType() == $metadataclass::MANY_TO_MANY) {
             $targetForm = new Dnna_Form_SubFormBase($this->_view);
             for($i = 1; $i < $curField->get_maxoccurs(); $i++) {
-                $targetForm->addSubForm(new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly, $this->_classesadded, false), $i);
+                $targetForm->addSubForm(new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly, $this->_classesadded, true), $i);
             }
         } else {
-            $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly, $this->_classesadded, false);
+            $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly, $this->_classesadded, true);
         }
         $targetForm->setLegend($curField->get_label());
-        $this->addSubForm($targetForm, $curField->get_name(), false);
+        $this->addSubForm($targetForm, $curField->get_name(), true);
     }
 
     /**
@@ -193,7 +201,7 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
 
         $this->createFieldsFromType();
 
-        if($this->_addsubmit == true) {
+        if($this->_issubform == false) {
             $this->addSubmitFields();
         }
     }
