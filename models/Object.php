@@ -156,20 +156,17 @@ abstract class Dnna_Model_Object {
         if(isset($associations[$property])) {
             return $associations[$property]['targetEntity'];
         } else {
+            // Try to find it using the @var annotation
+            $reflection = new Zend_Reflection_Class(get_class($this));
+            if($reflection->hasProperty($property)) {
+                $property = $reflection->getProperty($property);
+                $docblock = $property->getDocComment();
+                if($docblock instanceof Zend_Reflection_Docblock && $docblock->hasTag('var')) {
+                    return trim($docblock->getTag('var')->getDescription());
+                }
+            }
             return null;
         }
-        /*$reflection = new Zend_Reflection_Class(get_class($this));
-        if($property[0] !== '_') {
-            $property = '_'.$property;
-        }
-        if($reflection->hasProperty($property)) {
-            $property = $reflection->getProperty($property);
-            $docblock = $property->getDocComment();
-            if($docblock instanceof Zend_Reflection_Docblock && $docblock->hasTag('var')) {
-                return trim($docblock->getTag('var')->getDescription());
-            }
-        }
-        return null;*/
     }
 
     /**

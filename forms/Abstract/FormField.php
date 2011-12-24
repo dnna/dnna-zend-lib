@@ -53,6 +53,9 @@ class Dnna_Form_Abstract_FormField {
     }
 
     public function set_name($_name) {
+        if($_name[0] === '_') {
+            $_name = substr($_name, 1);
+        }
         $this->_name = $_name;
     }
 
@@ -152,7 +155,7 @@ class Dnna_Form_Abstract_FormField {
         if(isset($metadataassociation)) {
             return $metadataassociation;
         } else {
-            return $metadataclass::ONE_TO_MANY;
+            return null;
         }
     }
 }
