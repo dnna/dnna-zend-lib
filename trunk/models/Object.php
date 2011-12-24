@@ -64,7 +64,9 @@ abstract class Dnna_Model_Object {
             if(is_scalar($value)) {
                 // Αν το πεδίο είναι association τότε το αλλάζουμε από scalar σε object
                 if(($classname = $this->guessPropertyClass($key)) != null) {
-                    $value = Zend_Registry::get('entityManager')->getRepository($classname)->find($value);
+                    try {
+                        $value = Zend_Registry::get('entityManager')->getRepository($classname)->find($value);
+                    } catch(Exception $e) { /* Δεν είναι Entity του Doctrine */ }
                 }
                 if(in_array($method, $methods)) {
                     $this->$method($value);
