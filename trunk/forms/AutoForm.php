@@ -149,8 +149,10 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
                     $curField = new Dnna_Form_Abstract_FormField();
                     if($docblock->hasTag('FormFieldLabel') || $docblock->hasTag('FormFieldType')) {
                         $curField->set_belongingClass($this->_class);
-                        $curField->set_name(substr($curProperty->getName(), 1));
-                        $curField->set_metadata(Zend_Registry::get('entityManager')->getMetadataFactory()->getMetadataFor($this->_class));
+                        $curField->set_name($curProperty->getName());
+                        try {
+                            $curField->set_metadata(Zend_Registry::get('entityManager')->getMetadataFactory()->getMetadataFor($this->_class));
+                        } catch(Exception $e) { /* Object isn't an entity */ }
                         if($docblock->hasTag('FormFieldLabel')) {
                             $curField->set_label($docblock->getTag('FormFieldLabel')->getDescription());
                         }
