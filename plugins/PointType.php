@@ -39,7 +39,7 @@ class PointType extends Type {
         }
  
         $data = unpack('x/x/x/x/corder/Ltype/dlat/dlon', $value);
-        return new Dnna_Model_Point($data['lat'], $data['lon']);
+        return new \Dnna_Model_Point($data['lat'], $data['lon']);
     }
  
     public function convertToDatabaseValue($value, AbstractPlatform $platform) {
