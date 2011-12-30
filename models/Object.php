@@ -28,7 +28,7 @@ abstract class Dnna_Model_Object {
     public function __get($name) {
         $method = 'get' . $name;
         if (('mapper' == $name) || !method_exists($this, $method)) {
-            throw new Exception('Invalid property');
+            throw new Exception('Invalid property '.$name);
         }
         return $this->$method();
     }
@@ -191,6 +191,16 @@ abstract class Dnna_Model_Object {
         return $ids;
     }
 
+    private function dateFormat($curValue, $options = array()) {
+        if(isset($options['timestamps']) && $options['timestamps'] == true) {
+            return $curValue->getTimestamp();
+        } else if(isset($options['iso8601']) && $options['iso8601'] == true) {
+            return $curValue->format('c');
+        } else {
+            return $curValue->__toString();
+        }
+    }
+
     /**
      * Συνάρτηση factory που φέρνει ένα αντικείμενο από τη βάση δεδομένων, αν
      * υπάρχει, ή δημιουργεί νέο, αν αυτό δεν υπάρχει.
@@ -213,7 +223,7 @@ abstract class Dnna_Model_Object {
         }
     }
 
-    public function getOptions($onlyDbFields = true, $options = Array()) {
+    public function getOptions($onlyDbFields = true, $poptions = Array()) {
         $methods = get_class_methods($this);
         $options = Array();
         $defaultvars = array_keys(get_class_vars(get_class($this)));
@@ -223,6 +233,9 @@ abstract class Dnna_Model_Object {
                 $method = 'get'.$key;
                 if (in_array($method, $methods)) {
                     $options[substr($key, 1)] = $this->$method();
+                    if($options[substr($key, 1)] instanceof EDateTime) {
+                        $options[substr($key, 1)] = $this->dateFormat($options[substr($key, 1)], $poptions);
+                    }
                 }
             }
         }
@@ -236,13 +249,7 @@ abstract class Dnna_Model_Object {
                 if(is_scalar($curValue) || $curValue == null) {
                     $result[$curProperty] = $curValue;
                 } else if($curValue instanceof EDateTime) {
-                    if(isset($options['timestamps']) && $options['timestamps'] == true) {
-                        $result[$curProperty] = $curValue->getTimestamp();
-                    } else if(isset($options['iso8601']) && $options['iso8601'] == true) {
-                        $result[$curProperty] = $curValue->format('c');
-                    } else {
-                        $result[$curProperty] = $curValue->__toString();
-                    }
+                    $result[$curProperty] = $this->dateFormat($curValue, $options);
                 } else if(!in_array($curValue, $visited, true)) {
                     array_push($visited, $curValue);
                     $result[$curProperty] = $this->getOptionsRecursive($curValue, $visited, $options);
