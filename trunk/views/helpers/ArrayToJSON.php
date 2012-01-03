@@ -57,7 +57,14 @@ class Dnna_View_Helper_ArrayToJSON extends Zend_View_Helper_Abstract
         } else {
             $result = $data;
         }
-        return json_encode($result);
+        $callback = Zend_Controller_Front::getInstance()->getRequest()->getParam('callback');
+        if($callback != null) {
+            // strip all non alphanumeric elements from callback
+            $callback = preg_replace('/[^a-zA-Z0-9_]/', '', $callback);
+            return $callback.'('.json_encode($result).');';
+        } else {
+            return json_encode($result);
+        }
     }
 }
 ?>

@@ -27,7 +27,14 @@ class Dnna_View_Helper_IndexJSON extends Zend_View_Helper_Abstract
             $objarray['name'] = $name->__toString();
             $fullarray[$root][] = $objarray;
         }
-        return json_encode($fullarray);
+        $callback = Zend_Controller_Front::getInstance()->getRequest()->getParam('callback');
+        if($callback != null) {
+            // strip all non alphanumeric elements from callback
+            $callback = preg_replace('/[^a-zA-Z0-9_]/', '', $callback);
+            return $callback.'('.json_encode($fullarray).');';
+        } else {
+            return json_encode($fullarray);
+        }
     }
 }
 ?>
