@@ -124,7 +124,7 @@ abstract class Dnna_Model_Object {
                         if(in_array($method, $methods)) {
                             $idfieldvalues = $this->getIdFieldValues($classname, $value);
                             // Έλεγχος ότι δεν είναι "null"
-                            if(count($idfieldvalues) == 1 && reset($idfieldvalues) === 'null') {
+                            if(count($idfieldvalues) <= 0 || (count($idfieldvalues) == 1 && reset($idfieldvalues) === 'null')) {
                                 $this->$method(null);
                             } else {
                                 $newObject = Dnna_Model_Object::createObjectSafe($classname, $idfieldvalues);
@@ -195,6 +195,9 @@ abstract class Dnna_Model_Object {
         if(isset($options['timestamps']) && $options['timestamps'] == true) {
             return $curValue->getTimestamp();
         } else if(isset($options['iso8601']) && $options['iso8601'] == true) {
+            return $curValue->format('c');
+        } else if(Zend_Registry::isRegistered('performApiConversions')) {
+            // Format που θέλει το XSD
             return $curValue->format('c');
         } else {
             return $curValue->__toString();

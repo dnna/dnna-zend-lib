@@ -132,11 +132,8 @@ class Dnna_Form_FormBase extends Zend_Form {
                 if(is_scalar($curValue) || method_exists($curValue, 'getId') || $curValue instanceof EDateTime || $curValue == null) {
                     // Api conversions για να βγαίνει valid xsd
                     if(Zend_Registry::isRegistered('performApiConversions')) {
-                        if($curValue instanceof EDateTime) {
-                            // Format που θέλει το XSD
-                            $curValue = $curValue->format('c');
-                        } else if($this->getElement($curProperty) != null && $this->getElement($curProperty)->getValidator('Float') != false) {
-                            // Float conversion
+                        if($this->getElement($curProperty) != null && $this->getElement($curProperty)->getValidator('Float') != false) {
+                            // Float conversion για να κάνει validate το παραγόμενο xml με το xsd στα διάφορα engines
                             $curValue = Zend_Locale_Format::getNumber($curValue,
                                                         array('precision' => 2,
                                                               'locale' => Zend_Registry::get('Zend_Locale'))
@@ -205,12 +202,30 @@ class Dnna_Form_FormBase extends Zend_Form {
     public function getElementsAsArray() {
         return $this->getElementsAsArray_r($this);
     }
-
+    
     public function isValid($data) {
         if(isset($data['isvisible']) && $data['isvisible'] == 0) {
             $this->setRequired(false);
         }
         return parent::isValid($data);
+    }
+    
+    public function addElement($element, $name = null, $options = null) {
+        parent::addElement($element, $name, $options);
+        if(Zend_Registry::isRegistered('performApiConversions')) {
+            // Change the validator formats to correspond to what the xsd validators expect
+            $element = $this->getElement($name);
+            if($element != null) {
+                foreach($element->getValidators() as $curValidator) {
+                    if($curValidator instanceof Zend_Validate_Date) {
+                        //$curValidator->setFormat(Zend_Date::ISO_8601); // Doesn't seem to work :(
+                        $element->removeValidator('Date');
+                    }/* else if($curValidator instanceof Zend_Validate_Float) {
+                        $curValidator->setLocale(new Zend_Locale('en_US'));
+                    }*/
+                }
+            }
+        }
     }
     
     private function getElementsAsArray_r(Zend_Form $root) {

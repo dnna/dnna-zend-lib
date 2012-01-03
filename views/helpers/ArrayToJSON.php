@@ -26,7 +26,7 @@ class Dnna_View_Helper_ArrayToJSON extends Zend_View_Helper_Abstract
         foreach($form->getSubForms() as $curName => $curSubForm) {
             if($curSubForm->getName() === 'default') {
                 // Merge the default subform
-                $data = $this->addElements($data, $curSubForm);
+                $this->addElements($data, $curSubForm);
             } else if($curSubForm->getElement('1') != null || $curSubForm->getSubForm('1') != null) {
                 $data[$curName] = array();
                 $i = 1;
