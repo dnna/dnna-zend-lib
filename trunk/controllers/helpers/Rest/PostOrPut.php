@@ -5,8 +5,19 @@
 class Dnna_Action_Helper_Rest_PostOrPut extends Zend_Controller_Action_Helper_ContextSwitch
 {
     public function direct($controller, $classname, Dnna_Form_FormBase $form, $id = null) {
+        $contenttype = $controller->getRequest()->getHeader('Content-Type');
+        if(strpos($contenttype, 'application/xml') !== false || strpos($contenttype, 'text/xml') !== false) {
+            $xmltoarray = new Dnna_Plugin_XML2Array();
+            $params = $xmltoarray->xml2array($controller->getRequest()->getRawBody(), 0);
+            $params = array_pop($params);
+        } else if(strpos($contenttype, 'application/json') !== false) {
+            $params = json_decode($controller->getRequest()->getRawBody(), true);
+        } else {
+            $params = $controller->getRequest()->getUserParams();
+        }
+
         $controller->getHelper('viewRenderer')->setNoRender(TRUE);
-        if($form->isValid($controller->getRequest()->getUserParams())) {
+        if($form->isValid($params)) {
             $created = false;
             if(isset($id)) {
                 $em = Zend_Registry::get('entityManager');
@@ -28,7 +39,15 @@ class Dnna_Action_Helper_Rest_PostOrPut extends Zend_Controller_Action_Helper_Co
             }
         } else {
             throw new Exception('Κάποια στοιχεία δεν συμπληρώθηκαν ή δεν είναι έγκυρα.');
-            //return array('error' => true, 'errorRow' => $i, 'formElements' => $form->getElementsAsArray());
+            /*echo '<?xml version="1.0" encoding="UTF-8"?>
+            <error>
+                <code>0</code>
+                <message>Κάποια στοιχεία δεν συμπληρώθηκαν ή δεν είναι έγκυρα</message>
+                <details>
+                </details>
+                <params>
+                </params>
+            </error>';*/
         }
     }
 }
