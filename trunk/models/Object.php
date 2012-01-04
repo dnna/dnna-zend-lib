@@ -404,13 +404,13 @@ abstract class Dnna_Model_Object {
                         $oldcollection->add($newItem);
                     }
                 }
-                $em->flush();
+                //$em->flush();
                 return $oldcollection;
             } else {
                 foreach($oldcollection as &$curItem) {
                     $oldcollection->removeElement($curItem);
                 }
-                $em->flush();
+                //$em->flush();
                 return $newcollection;
             }
         }
