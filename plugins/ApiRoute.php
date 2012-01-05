@@ -64,6 +64,12 @@ class Dnna_Plugin_ApiRoute extends Zend_Rest_Route {
             }
             unset($this->params['folderwide']);
 
+            // Προσθήκη των παραμέτρων του query string
+            parse_str(parse_url($request->getRequestUri(), PHP_URL_QUERY), $queryparams);
+            $this->params = array_merge_recursive($this->params, $queryparams);
+            var_dump($this->params);
+            die();
+
             // Αλλαγή του action σε schema αν υπάρχει η παράμετρος schema
             if((isset($this->params['id']) && $this->params['id'] === 'schema') || isset($this->params['schema'])) {
                 $this->params['action'] = 'schema';
