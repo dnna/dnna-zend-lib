@@ -77,11 +77,12 @@ class Dnna_View_Helper_ArrayToXML extends Zend_View_Helper_Abstract
 
     public function arrayToXML($data, $root = 'object') {
         // creating object of SimpleXMLElement
+        $schemaurl = preg_replace('/\?.*/', '', $this->view->url(array('id' => 'schema')));
         $xmlstr =
         '<?xml version="1.0"?>
-        <'.$root.' xmlns="'.htmlspecialchars($this->view->serverUrl().$this->view->url(array('id' => 'schema'))).'"
+        <'.$root.' xmlns="'.htmlspecialchars($this->view->serverUrl().$schemaurl).'"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="'.htmlspecialchars($this->view->serverUrl().$this->view->url(array('id' => 'schema'))).' schema.xsd"></'.$root.'>';
+            xsi:schemaLocation="'.htmlspecialchars($this->view->serverUrl().$schemaurl).' schema.xsd"></'.$root.'>';
         $xml = new SimpleXMLElement($xmlstr);
         // function call to convert array to xml
         if($data instanceof Zend_Form) {
