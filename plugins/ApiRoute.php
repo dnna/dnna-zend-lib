@@ -81,7 +81,7 @@ class Dnna_Plugin_ApiRoute extends Zend_Rest_Route {
         if(!$reset) {
             $data = array_merge($this->_front->getRequest()->getParams(), $data);
         }
-        $url = $this->_front->getBaseUrl().$this->_front->getRequest()->getModuleName().'/'.$this->getControllerPath($data['controller']);
+        $url = $this->_front->getBaseUrl().$this->_front->getRequest()->getModuleName().'/'.self::getControllerPath($data['controller']);
         if(isset($data['subtype'])) {
             $url .= '/'.$data['subtype'];
         }
@@ -113,9 +113,9 @@ class Dnna_Plugin_ApiRoute extends Zend_Rest_Route {
 
     protected function findActionAndId($pathInfo) {
         $pathInfo = substr($pathInfo, 1);
-        $controllerpath = $this->getControllerPath($this->params['controller']);
+        $controllerpath = self::getControllerPath($this->params['controller']);
         $restpath = str_replace($controllerpath, '', $pathInfo);
-        $restpathExploded = $this->trimArray(explode('/', $restpath));
+        $restpathExploded = self::trimArray(explode('/', $restpath));
 
         $return = array();
         if(isset($this->params['folderwide']) && $this->params['folderwide'] == true) {
@@ -148,7 +148,7 @@ class Dnna_Plugin_ApiRoute extends Zend_Rest_Route {
         return $return;
     }
     
-    protected function getControllerPath($controllername) {
+    public static function getControllerPath($controllername) {
         $controllerpath = str_replace('_', '/', strtolower($controllername));
         if(substr($controllerpath, -6) === '/index') {
             // Αφαιρούμε το /index
@@ -157,7 +157,7 @@ class Dnna_Plugin_ApiRoute extends Zend_Rest_Route {
         return $controllerpath;
     }
 
-    protected function trimArray($array, $character = '') {
+    public static function trimArray($array, $character = '') {
         while(isset($array[0]) && $array[0] == $character) { // Αφαιρούμε τα κενά από την αρχή
             array_shift($array);
         }
