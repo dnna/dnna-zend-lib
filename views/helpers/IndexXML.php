@@ -24,7 +24,7 @@ class Dnna_View_Helper_IndexXML extends Zend_View_Helper_Abstract
             echo '
             <item>
                  <'.$idname.'>'.$id.'</'.$idname.'>
-                 <name>'.$name.'</name>
+                 <name>'.htmlspecialchars($name).'</name>
                  <url>'.htmlspecialchars($this->view->serverUrl().$this->view->url(array('id' => $id))).'</url>
             </item>';
         }
