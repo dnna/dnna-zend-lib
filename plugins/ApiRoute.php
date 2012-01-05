@@ -86,8 +86,11 @@ class Dnna_Plugin_ApiRoute extends Zend_Rest_Route {
             $url .= '/'.$data['subtype'];
         }
         if(isset($data['id'])) {
-            $url .= '/'.$data['id'];
+            if($data['id'] !== $this->_front->getRequest()->getModuleName()) {
+                $url .= '/'.$data['id'];
+            }
         }
+        $url = preg_replace("/(\/)\\1+/", "$1", $url); // Αφαίρεση επαναλαμβανόμενων /
         return $url;
     }
 
@@ -153,6 +156,8 @@ class Dnna_Plugin_ApiRoute extends Zend_Rest_Route {
         if(substr($controllerpath, -6) === '/index') {
             // Αφαιρούμε το /index
             $controllerpath = substr($controllerpath, 0, -6);
+        } else if(substr($controllerpath, -5) === 'index') {
+            $controllerpath = substr($controllerpath, 0, -5);
         }
         return $controllerpath;
     }
