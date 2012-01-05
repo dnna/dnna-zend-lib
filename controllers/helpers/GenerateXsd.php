@@ -29,7 +29,7 @@ class Dnna_Action_Helper_GenerateXsd extends Zend_Controller_Action_Helper_Abstr
         $complexType = $rootelement->addChild('xsd:complexType');
         $sequence = $complexType->addChild('xsd:sequence');
         // Sometimes people change the form in isValid so lets make sure its executed
-        $form->isValid($form->getValues());
+        @$form->isValid($form->getValues());
         // Add the rest of the elements
         $this->addElements($sequence, $form);
         return $this->_xmlobj->asXML();
