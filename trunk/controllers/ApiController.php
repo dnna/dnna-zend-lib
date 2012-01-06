@@ -2,7 +2,7 @@
 /**
  * @author Dimosthenis Nikoudis <dnna@dnna.gr>
  */
-class Dnna_Controller_ApiController extends Zend_Rest_Controller
+class Dnna_Controller_ApiController extends Dnna_Controller_ApicontentsController
 {
     protected $_allowAnonymous = false;
     protected $_returnhtml = false;
@@ -11,32 +11,6 @@ class Dnna_Controller_ApiController extends Zend_Rest_Controller
     protected $_idfieldname;
     protected $_rootfieldname;
     protected $_rootfieldnameplural;
-
-    public function init()
-    {
-        $this->view->request = $this->_request;
-        $this->view->response = $this->_response;
-        $this->view->format = $this->_request->getParam('format');
-
-        // We remove ALL contexts before adding our own. This makes sure we ONLY use the contexts we supply here.
-        $this->_helper->restContextSwitch()
-            ->clearContexts();
-        if($this->_returnhtml != true) {
-            $this->_helper->restContextSwitch()
-                ->clearContexts()
-                ->addContext(
-                    'xml',
-                    array('suffix' => 'xml', 'headers' => array('Content-Type' => 'text/xml')))
-                ->addContext(
-                    'json',
-                    array('suffix' => 'json', 'headers' => array('Content-Type' => 'application/json')))
-                ->clearActionContexts()
-                ->addGlobalContext(array('xml', 'json'))
-                ->setDefaultContext('xml')
-                ->initContext();
-        }
-        $this->_helper->viewRenderer->setNoRender(TRUE);
-    }
 
     public function preDispatch() {
         // ACL
@@ -72,11 +46,6 @@ class Dnna_Controller_ApiController extends Zend_Rest_Controller
 
     public function schemaAction() {
         echo $this->_helper->generateXsd($this, new Dnna_Form_AutoForm($this->_classname, $this->view), $this->_rootfieldname);
-    }
-
-    protected function utf8_urldecode($str) {
-        $str = preg_replace("/%u([0-9a-f]{3,4})/i","&#x\\1;",urldecode($str));
-        return html_entity_decode($str,null,'UTF-8');
     }
 }
 ?>
