@@ -183,7 +183,7 @@ abstract class Dnna_Model_Object {
             $docblock = $curProperty->getDocComment();
             if($docblock instanceof Zend_Reflection_Docblock && $docblock->hasTag('Id')) {
                 $newKey = substr($curProperty->getName(), 1);
-                if($values[$newKey] != null) {
+                if($values[$newKey] !== null) {
                     $ids[$curProperty->getName()] = $values[$newKey];
                 }
             }
