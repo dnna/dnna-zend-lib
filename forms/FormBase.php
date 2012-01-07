@@ -33,13 +33,13 @@ class Dnna_Form_FormBase extends Zend_Form {
         
         $this->fixDecorators();
     }
-
+    
     protected function initSubform() {
         $this->_isArray = true;
         $tempsubform = new Zend_Form_SubForm();
         $this->setDecorators($tempsubform->getDecorators());
     }
-
+    
     public function fixDecorators() {
         // Αφαίρεση των decorators από τα hidden πεδία αλλιώς προσθήκη του div decorator
         foreach ($this->getElements() as $element) {
