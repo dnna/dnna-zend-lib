@@ -38,6 +38,7 @@ class Dnna_Form_FormBase extends Zend_Form {
         $this->_isArray = true;
         $tempsubform = new Zend_Form_SubForm();
         $this->setDecorators($tempsubform->getDecorators());
+        $this->removeElement('submit');
     }
     
     public function fixDecorators() {

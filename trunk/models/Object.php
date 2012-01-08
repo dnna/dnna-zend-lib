@@ -183,8 +183,10 @@ abstract class Dnna_Model_Object {
             $docblock = $curProperty->getDocComment();
             if($docblock instanceof Zend_Reflection_Docblock && $docblock->hasTag('Id')) {
                 $newKey = substr($curProperty->getName(), 1);
-                if($values[$newKey] !== null) {
+                if(@$values[$newKey] !== null) {
                     $ids[$curProperty->getName()] = $values[$newKey];
+                } else if(@$values['default'][$newKey] !== null) {
+                    $ids[$curProperty->getName()] = $values['default'][$newKey];
                 }
             }
         }
@@ -231,6 +233,7 @@ abstract class Dnna_Model_Object {
         $options = Array();
         $defaultvars = array_keys(get_class_vars(get_class($this)));
         foreach($this as $key => $value) {
+            if(is_object($value) && @$poptions['ignoreobjects'] == true) { continue; }
             if(!in_array($key, $defaultvars) || $key === '_entityPersister' || $key === '_identifier' || $key === '__isInitialized__') { continue; }
             if(!$onlyDbFields || strpos($key, '__') === false) {
                 $method = 'get'.$key;
