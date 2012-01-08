@@ -8,6 +8,7 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
     protected $_idfieldsonly;
     protected $_classesadded; // Prevent recursion loops
     protected $_issubform;
+    protected $_elementorder = 100;
 
     public function __construct($class, $view = null, $idfieldsonly = false, $classesadded = array(), $issubform = false) {
         $this->_class = $class;
@@ -94,9 +95,27 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
             } else {
                 throw new Exception('Άγνωστος τύπος πεδίου.');
             }
+
+            // Add a high enough order so that other elements can be prepended
+            if(($element = $this->getElement($curField->get_name())) != null) {
+                $element->setOrder($this->_elementorder);
+            } else if(($subform = $this->getSubForm($curField->get_name())) != null) {
+                $subform->setOrder($this->_elementorder);
+            }
+            $this->_elementorder = $this->_elementorder + 10;
+
+            // Check if field should be disabled
             if($curField->get_disabled() == true) {
                 $this->getElement($curField->get_name())->setIgnore($curField->get_disabled());
                 $this->getElement($curField->get_name())->setAttrib('readonly', $curField->get_disabled());
+            } else {
+                // Lets add some validators based on the metadata
+                if($curField->getDoctrineType() === 'integer') {
+                    $element->addValidator(new Zend_Validate_Int());
+                } else if($curField->getDoctrineType() === 'date') {
+                    $element->addValidator(new Zend_Validate_Date());
+                    $element->setAttrib('class', 'usedatepicker hasDatepicker');
+                }
             }
         }
     }
@@ -120,14 +139,15 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
         if(in_array($targetClassname, $this->_classesadded)) {
             return;
         }
-        array_push($this->_classesadded, $targetClassname);
+        $newclassesadded = $this->_classesadded;
+        array_push($newclassesadded, $targetClassname);
         if($curField->getAssociationType() == $metadataclass::ONE_TO_MANY || $curField->getAssociationType() == $metadataclass::MANY_TO_MANY) {
             $targetForm = new Dnna_Form_SubFormBase($this->_view);
             for($i = 1; $i < $curField->get_maxoccurs(); $i++) {
-                $targetForm->addSubForm(new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly, $this->_classesadded, true), $i);
+                $targetForm->addSubForm(new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly, $newclassesadded, true), $i);
             }
         } else {
-            $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly, $this->_classesadded, true);
+            $targetForm = new Dnna_Form_AutoForm($targetClassname, $this->_view, $idonly, $newclassesadded, true);
         }
         $targetForm->setLegend($curField->get_label());
         $this->addSubForm($targetForm, $curField->get_name(), true);
