@@ -158,5 +158,14 @@ class Dnna_Form_Abstract_FormField {
             return null;
         }
     }
+
+    public function getDoctrineType() {
+        $metadataresult = @$this->get_metadata()->fieldMappings['_'.$this->get_name()][type];
+        if(isset($metadataresult)) {
+            return $metadataresult;
+        } else {
+            return 'notype';
+        }
+    }
 }
 ?>
