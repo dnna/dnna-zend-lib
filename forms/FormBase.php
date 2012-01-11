@@ -8,13 +8,12 @@ class Dnna_Form_FormBase extends Zend_Form {
     protected $_textareaRows;
     protected $_textareaCols;
     protected $_textareaMaxLength;
-    
+
     public function __construct($view = null) {
-        $bootstrap = Zend_Controller_Front::getInstance()->getParam('bootstrap');
-        $config = $bootstrap->getOptions();
-        $this->_textareaRows = $config['form']['textareaRows'];
-        $this->_textareaCols = $config['form']['textareaCols'];
-        $this->_textareaMaxLength = $config['form']['textareaMaxLength'];
+        $textareainfo = self::getTextAreaInfo();
+        $this->_textareaRows = $textareainfo['textareaRows'];
+        $this->_textareaCols = $textareainfo['textareaCols'];
+        $this->_textareaMaxLength = $textareainfo['textareaMaxLength'];
         $this->addElementPrefixPath('Application_Form_Decorator', APPLICATION_PATH.'/forms/Decorator', 'decorator');
         
         if($view instanceof Zend_View_Interface) {
@@ -32,6 +31,17 @@ class Dnna_Form_FormBase extends Zend_Form {
         }
         
         $this->fixDecorators();
+    }
+
+    public static function getTextAreaInfo() {
+        $bootstrap = Zend_Controller_Front::getInstance()->getParam('bootstrap');
+        $config = $bootstrap->getOptions();
+        $info = array();
+        $info['textareaRows'] = $config['form']['textareaRows'];
+        $info['textareaCols'] = $config['form']['textareaCols'];
+        $info['textareaMaxLength'] = $config['form']['textareaMaxLength'];
+        
+        return $info;
     }
     
     protected function initSubform() {
