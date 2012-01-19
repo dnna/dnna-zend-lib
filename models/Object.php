@@ -366,7 +366,7 @@ abstract class Dnna_Model_Object {
         if($oldcollection instanceof Doctrine\ORM\PersistentCollection || !isset($oldcollection)) {
             if(!isset($oldcollection)) { $oldcollection = new ArrayCollection(); } // Αν δεν υπάρχει παλιό collection τότε αρχικοποιούμε ένα άδειο
             $em = Zend_Registry::get('entityManager');
-            if(($newcollection instanceof ArrayCollection || $newcollection instanceof Doctrine\ORM\PersistentCollection) && $newcollection->count() > 0 && $newcollection->first() instanceof Application_Model_SubObject) {
+            if(($newcollection instanceof ArrayCollection || $newcollection instanceof Doctrine\ORM\PersistentCollection) && $newcollection->count() > 0 && $newcollection->first() instanceof Dnna_Model_SubObject) {
                 // 1. Φτιάχνουμε έναν πίνακα με τα recordid που περιέχονται και στα 2 collections (δηλαδή τα κοινά στοιχεία)
                 $common = array();
                 foreach($newcollection as $newItem) {
