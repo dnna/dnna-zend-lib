@@ -186,10 +186,12 @@ class Dnna_Form_FormBase extends Zend_Form {
     }
     
     public function setRequired($required) {
-        foreach($this->getElements() as $curElement) {
+        $elements = $this->getElements();
+        foreach($elements as &$curElement) {
             $curElement->setRequired($required);
         }
-        foreach($this->getSubForms() as $curSubForm) {
+        $subforms = $this->getSubForms();
+        foreach($subforms as &$curSubForm) {
             if($curSubForm instanceof Dnna_Form_FormBase) {
                 $curSubForm->setRequired($required);
             }

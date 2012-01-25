@@ -78,6 +78,9 @@ class Dnna_Plugin_ApiRoute extends Zend_Rest_Route {
                 $this->cache->save($this->params, 'apictrl_'.md5($pathInfo));
             }
         }
+        $otherparams = array();
+        parse_str($request->getRawBody(), $otherparams);
+        $this->params = array_merge_recursive($this->params, $otherparams);
         return $this->params;
     }
 
@@ -151,6 +154,9 @@ class Dnna_Plugin_ApiRoute extends Zend_Rest_Route {
                 // Id + άλλοι παράμετροι
                 throw new Exception('Δεν έχει υλοποιηθεί η εύρεση παραμέτρων στο ApiRoute');
             }
+        }
+        if($this->params['action'] !== 'index' && $this->params['action'] !== 'get') {
+            $return['action'] = $this->params['action'];
         }
         return $return;
     }
