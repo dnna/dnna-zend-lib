@@ -17,15 +17,20 @@ class Dnna_Action_Helper_Rest_PostOrPut extends Zend_Controller_Action_Helper_Co
         }
 
         $controller->getHelper('viewRenderer')->setNoRender(TRUE);
+        // If we are editing we should need to provide every field
+        if(isset($id)) {
+            $em = Zend_Registry::get('entityManager');
+            $object = $em->getRepository($classname)->find($id);
+        }
+        if(!isset($object)) {
+            $created = true;
+            $object = new $classname();
+        }
+        $form->populate($object);
+        //if($form->isValid(array_merge_recursive($form->getValues(), $params))) { // Φαίνεται να οδηγεί σε corruption της επιστημονικής επιτροπής
         if($form->isValid($params)) {
             $created = false;
-            if(isset($id)) {
-                $em = Zend_Registry::get('entityManager');
-                $object = $em->getRepository($classname)->find($id);
-            }
-            if(!isset($object)) {
-                $created = true;
-                $object = new $classname();
+            if(isset($created) && $created == true) {
                 $object->save(); // Για να πάρει id
             }
             $object->setOptions($form->getValues());
