@@ -17,8 +17,8 @@ class Dnna_Controller_ApiController extends Dnna_Controller_ApicontentsControlle
     }
 
     public function indexAction() {
-        $posts = Zend_Registry::get('entityManager')->getRepository($this->_classname)->findAll();
-        $this->_helper->Index($this, $posts, $this->_rootfieldnameplural, array($this->_idfieldname => 'get_'.$this->_idfieldname));
+        $objects = Zend_Registry::get('entityManager')->getRepository($this->_classname)->findAll();
+        $this->_helper->Index($this, $objects, $this->_rootfieldnameplural, array($this->_idfieldname => 'get_'.$this->_idfieldname));
     }
 
     public function getAction() {

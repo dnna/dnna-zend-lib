@@ -9,7 +9,7 @@ class Dnna_View_Helper_IndexXML extends Zend_View_Helper_Abstract
         $this->view = $view;
     }
 
-    public function indexXML(array $array, $root = 'items', $idmethod = array('id' => 'get_id')) {
+    public function indexXML(array $array, $root = 'items', $idmethod = array('id' => 'get_id'), $additionalfields = array()) {
         echo '<?xml version="1.0" encoding="UTF-8"?>'.PHP_EOL;
         echo '<'.$root.'>';
         foreach($array as $id => $name) {
@@ -25,7 +25,12 @@ class Dnna_View_Helper_IndexXML extends Zend_View_Helper_Abstract
             <item>
                  <'.$idname.'>'.$id.'</'.$idname.'>
                  <name>'.htmlspecialchars($name).'</name>
-                 <url>'.htmlspecialchars($this->view->serverUrl().$this->view->url(array('id' => $id))).'</url>
+                 <url>'.htmlspecialchars($this->view->serverUrl().$this->view->url(array('id' => $id))).'</url>';
+            foreach($additionalfields as $fieldname => $func) {
+                echo '
+                <'.$fieldname.'>'.$name->$func().'</'.$fieldname.'>';
+            }
+            echo '
             </item>';
         }
         echo '</'.$root.'>';

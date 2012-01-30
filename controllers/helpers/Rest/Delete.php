@@ -2,7 +2,7 @@
 /**
  * @author Dimosthenis Nikoudis <dnna@dnna.gr>
  */
-class Dnna_Action_Helper_Rest_Delete extends Zend_Controller_Action_Helper_ContextSwitch
+class Dnna_Action_Helper_Rest_Delete extends Zend_Controller_Action_Helper_Abstract
 {
     public function direct($controller, $classname, $id = null) {
         $controller->getHelper('viewRenderer')->setNoRender(TRUE);
