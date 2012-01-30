@@ -2,7 +2,7 @@
 /**
  * @author Dimosthenis Nikoudis <dnna@dnna.gr>
  */
-class Dnna_Action_Helper_Rest_Get extends Zend_Controller_Action_Helper_ContextSwitch
+class Dnna_Action_Helper_Rest_Get extends Zend_Controller_Action_Helper_Abstract
 {
     public function direct(Zend_Controller_Action $controller, $object, Zend_Form $form, $root = 'item') {
         if($form instanceof Dnna_Form_FormBase) {
