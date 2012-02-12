@@ -185,6 +185,10 @@ class Dnna_Form_FormBase extends Zend_Form {
         //return parent::populate($mapping); // Η populate της Zend_Form είναι recursive και δημιουργεί bugs
     }
     
+    public function populateDefault($data) {
+        return parent::populate($data);
+    }
+    
     public function setRequired($required) {
         $elements = $this->getElements();
         foreach($elements as &$curElement) {
