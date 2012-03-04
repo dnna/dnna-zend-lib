@@ -44,6 +44,18 @@ class Dnna_Model_Point {
         return $this;
     }
 
+    public function getOptions() {
+        $methods = get_class_methods($this);
+        $options = Array();
+        foreach($this as $key => $value) {
+            $method = 'get'.$key;
+            if (in_array($method, $methods)) {
+                $options[substr($key, 1)] = $this->$method();
+            }
+        }
+        return $options;
+    }
+
     public function __toString() {
         //Output from this is used with POINT_STR in DQL so must be in specific format
         return sprintf('POINT(%f %f)', $this->_latitude, $this->_longitude);
