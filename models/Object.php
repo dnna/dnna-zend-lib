@@ -198,6 +198,8 @@ abstract class Dnna_Model_Object {
             return $curValue->getTimestamp();
         } else if(isset($options['iso8601']) && $options['iso8601'] == true) {
             return $curValue->format('c');
+        } else if(isset($options['preserveObject']) && $options['preserveObject'] == true) {
+            return $curValue;
         } else if(Zend_Registry::isRegistered('performApiConversions')) {
             // Format που θέλει το XSD
             return $curValue->format('c');
@@ -233,12 +235,13 @@ abstract class Dnna_Model_Object {
         $options = Array();
         $defaultvars = array_keys(get_class_vars(get_class($this)));
         foreach($this as $key => $value) {
-            if(is_object($value) && @$poptions['ignoreobjects'] == true) { continue; }
             if(!in_array($key, $defaultvars) || $key === '_entityPersister' || $key === '_identifier' || $key === '__isInitialized__') { continue; }
             if(!$onlyDbFields || strpos($key, '__') === false) {
                 $method = 'get'.$key;
                 if (in_array($method, $methods)) {
-                    $options[substr($key, 1)] = $this->$method();
+                    $value = $this->$method();
+                    if(is_object($value) && isset($poptions['ignoreobjects']) && $poptions['ignoreobjects'] == true) { continue; }
+                    $options[substr($key, 1)] = $value;
                     if($options[substr($key, 1)] instanceof EDateTime) {
                         $options[substr($key, 1)] = $this->dateFormat($options[substr($key, 1)], $poptions);
                     }
@@ -250,8 +253,8 @@ abstract class Dnna_Model_Object {
 
     protected function getOptionsRecursive($object, $visited = Array(), $options = Array()) {
         $result = Array();
-        if($object instanceof Dnna_Model_Object) {
-            foreach($object->getOptions() as $curProperty => $curValue) {
+        if($object instanceof Dnna_Model_Object || $object instanceof Dnna_Model_Point) {
+            foreach($object->getOptions(true, $options) as $curProperty => $curValue) {
                 if(is_scalar($curValue) || $curValue == null) {
                     $result[$curProperty] = $curValue;
                 } else if($curValue instanceof EDateTime) {
