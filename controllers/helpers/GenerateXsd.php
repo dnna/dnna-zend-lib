@@ -24,14 +24,16 @@ class Dnna_Action_Helper_GenerateXsd extends Zend_Controller_Action_Helper_Abstr
             xmlns="'.htmlspecialchars($controller->view->serverUrl().$controller->view->url(array('id' => 'schema'))).'"></xsd:schema>';
         $this->_xmlobj = simpledom_load_string($xmlstr);
         // Create the root type and the root element
-        $rootelement = $this->_xmlobj->addChild('xsd:element');
-        $rootelement->addAttribute('name', $root);
-        $complexType = $rootelement->addChild('xsd:complexType');
-        $sequence = $complexType->addChild('xsd:sequence');
+        $roottype = $this->_xmlobj->addChild('xsd:complexType');
+        $roottype->addAttribute('name', $root.'_type');
+        $sequence = $roottype->addChild('xsd:sequence');
         // Sometimes people change the form in isValid so lets make sure its executed
         @$form->isValid($form->getValues());
         // Add the rest of the elements
         $this->addElements($sequence, $form);
+        $rootelement = $this->_xmlobj->addChild('xsd:element');
+        $rootelement->addAttribute('name', $root);
+        $rootelement->addAttribute('type', $root.'_type');
         return $this->_xmlobj->asXML();
     }
 
@@ -60,7 +62,8 @@ class Dnna_Action_Helper_GenerateXsd extends Zend_Controller_Action_Helper_Abstr
                 $elementxmlobj = $sequence->addChild('xsd:element');
                 $elementxmlobj->addAttribute('name', 'item');
                 $elementxmlobj->addAttribute('type', $curSubForm->getName().'_type');
-                $elementxmlobj->addAttribute('minOccurs', 1);
+                $elementxmlobj->addAttribute('minOccurs', '0');
+                $elementxmlobj->addAttribute('nillable', 'true');
                 $elementxmlobj->addAttribute('maxOccurs', $this->calculateLoopingElementsNum($curSubForm));
             } else {
                 $rootelement = $xmlobj->addChild('xsd:element');
