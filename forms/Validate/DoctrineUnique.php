@@ -10,6 +10,8 @@ class Dnna_Form_Validate_DoctrineUnique extends Zend_Validate_Abstract {
     protected $_fieldName;
 
     protected $_messageTemplates;
+    
+    protected $_ignoreValues;
 
     /**
      * Constructor of this validator
@@ -24,6 +26,12 @@ class Dnna_Form_Validate_DoctrineUnique extends Zend_Validate_Abstract {
         // field name
         if(isset($options['fieldName'])) {
             $this->_fieldName = $options['fieldName'];
+        }
+        // except
+        if(isset($options['ignoreValues'])) {
+            $this->_ignoreValues = $options['ignoreValues'];
+        } else {
+            $this->_ignoreValues = array();
         }
         // error message
         if(isset($options['errorMsg'])) {
@@ -44,6 +52,9 @@ class Dnna_Form_Validate_DoctrineUnique extends Zend_Validate_Abstract {
      * @return boolean Returns true if the element is valid
      */
     public function isValid($value, $context = null) {
+        if(in_array($value, $this->_ignoreValues)) {
+            return true;
+        }
         if(isset($this->_fieldName)) {
             $object = Zend_Registry::get('entityManager')->getRepository($this->_entityName)->findOneBy(array($this->_fieldName => $value));
         } else {
