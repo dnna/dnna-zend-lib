@@ -9,7 +9,7 @@ class Dnna_View_Helper_IndexJSON extends Zend_View_Helper_Abstract
         $this->view = $view;
     }
 
-    public function indexJSON(array $array, $root = 'items', $idmethod = array('id' => 'get_id')) {
+    public function indexJSON(array $array, $root = 'items', $idmethod = array('id' => 'get_id'), $additionalfields = array()) {
         $fullarray = array();
         $fullarray[$root] = array();
         foreach($array as $id => $name) {
@@ -25,6 +25,9 @@ class Dnna_View_Helper_IndexJSON extends Zend_View_Helper_Abstract
             $objarray[$idname] = $id;
             $objarray['url'] = htmlspecialchars($this->view->serverUrl().$this->view->url(array('id' => $id)));
             $objarray['name'] = $name->__toString();
+            foreach($additionalfields as $curField => $curValue) {
+                $objarray[$curField] = $name->$curValue();
+            }
             $fullarray[$root][] = $objarray;
         }
         $callback = Zend_Controller_Front::getInstance()->getRequest()->getParam('callback');
