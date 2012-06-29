@@ -58,6 +58,8 @@ class Dnna_Controller_ApicontentsController extends Zend_Rest_Controller
     public function deleteAction() {
         throw new Exception('Not supported');
     }
+    
+    public function optionsAction() {}
 
     public function schemaAction() {
         throw new Exception('No schema has been set for this resource');

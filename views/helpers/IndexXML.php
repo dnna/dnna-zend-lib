@@ -28,7 +28,7 @@ class Dnna_View_Helper_IndexXML extends Zend_View_Helper_Abstract
                  <url>'.htmlspecialchars($this->view->serverUrl().$this->view->url(array('id' => $id))).'</url>';
             foreach($additionalfields as $fieldname => $func) {
                 echo '
-                <'.$fieldname.'>'.$name->$func().'</'.$fieldname.'>';
+                <'.$fieldname.'>'.htmlspecialchars($name->$func()).'</'.$fieldname.'>';
             }
             echo '
             </item>';
