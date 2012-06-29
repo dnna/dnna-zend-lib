@@ -39,7 +39,7 @@ class Dnna_View_Helper_ArrayToXML extends Zend_View_Helper_Abstract
                     return; // Don't create a node for empty optional fields
                 }
             } else {
-                $subnode = $node->addChild($element->getName(), $element->getValue());
+                $subnode = $node->addChild($element->getName(), htmlspecialchars($element->getValue()));
             }
             return $subnode;
     }
