@@ -215,6 +215,9 @@ class Dnna_Form_AutoForm extends Dnna_Form_FormBase {
     }
 
     public function isEmpty() {
+        if(isset($this->_empty)) {
+            return $this->_empty;
+        }
         $empty = true;
         $ids = $this->getIdFields();
         foreach($ids as $curId) {

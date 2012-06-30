@@ -29,7 +29,7 @@ class Dnna_View_Helper_ArrayToXML extends Zend_View_Helper_Abstract
             }
         }
     }
-    
+
     protected function addSingleElement(SimpleXMLElement &$node, Zend_Form_Element $element) {
             if($element->getValue() === null || $element->getValue() === '') {
                 if($element->isRequired()) {

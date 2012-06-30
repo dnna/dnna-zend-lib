@@ -8,6 +8,7 @@ class Dnna_Form_FormBase extends Zend_Form {
     protected $_textareaRows;
     protected $_textareaCols;
     protected $_textareaMaxLength;
+    protected $_empty;
 
     public function __construct($view = null) {
         $textareainfo = self::getTextAreaInfo();
@@ -285,6 +286,9 @@ class Dnna_Form_FormBase extends Zend_Form {
     // loops). In Dnna_Form_FormBase this always returns false, it's there so you can override
     // it in your own forms.
     public function isEmpty() {
+        if(isset($this->_empty)) {
+            return $this->_empty;
+        }
         $empty = true;
         foreach($this->getSubForms() as $curSubForm) {
             if($curSubForm instanceof Dnna_Form_FormBase && !$curSubForm->isEmpty()) {
@@ -294,7 +298,15 @@ class Dnna_Form_FormBase extends Zend_Form {
         }
         return $empty;
     }
-    
+
+    public function get_empty() {
+        return $this->_empty;
+    }
+
+    public function set_empty($_empty) {
+        $this->_empty = $_empty;
+    }
+
     private function mergeDefault(array &$values) {
         if(isset($values['default'])) {
             $values = $values + $values['default'];
